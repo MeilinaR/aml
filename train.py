@@ -26,6 +26,7 @@ import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import monitored_session as ms
 
 import meta
+from aml.aml_meta import AMLOptimizer
 import util
 
 flags = tf.flags
@@ -45,6 +46,7 @@ flags.DEFINE_integer("num_steps", 100,
 flags.DEFINE_integer("unroll_length", 20, "Meta-optimizer unroll length.")
 flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 flags.DEFINE_boolean("second_derivatives", False, "Use second derivatives.")
+flags.DEFINE_boolean("use_aml", False, "Use the AML modified optimizer")
 
 
 def main(_):
@@ -61,7 +63,10 @@ def main(_):
   problem, net_config, net_assignments = util.get_config(FLAGS.problem)
 
   # Optimizer setup.
-  optimizer = meta.MetaOptimizer(**net_config)
+  if flags.use_aml:
+    optimizer = AMLOptimizer(**net_config)
+  else:
+    optimizer = meta.MetaOptimizer(**net_config)
   minimize = optimizer.meta_minimize(
       problem, FLAGS.unroll_length,
       learning_rate=FLAGS.learning_rate,
