@@ -1,4 +1,4 @@
-from .meta import MetaOptimizer
+from meta import MetaOptimizer
 
 class AMLOptimizer(MetaOptimizer):
   """Modified Learning to learn (meta) optimizer."""
