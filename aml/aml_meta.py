@@ -3,7 +3,7 @@ import os
 import sys
 sys.path.append(os.path.realpath('.'))
 
-from ..meta import MetaOptimizer
+from .meta import MetaOptimizer
 
 class AMLOptimizer(MetaOptimizer):
   """Modified Learning to learn (meta) optimizer."""
