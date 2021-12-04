@@ -26,7 +26,7 @@ import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import monitored_session as ms
 
 import meta
-from .aml_meta import AMLOptimizer
+from aml_meta import AMLOptimizer
 import util
 
 flags = tf.flags
