@@ -19,7 +19,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-
+from sys import argv
 from six.moves import xrange
 import tensorflow as tf
 
@@ -46,11 +46,15 @@ flags.DEFINE_integer("num_steps", 100,
 flags.DEFINE_integer("unroll_length", 20, "Meta-optimizer unroll length.")
 flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 flags.DEFINE_boolean("second_derivatives", False, "Use second derivatives.")
-flags.DEFINE_boolean("aml", False, "Use the AML modified optimizer.")
-print(flags)
 
 
 def main(_):
+  # Check whether to use the AML optimizer:
+  if "--use-aml" in argv[1:]:
+    use_aml = True
+  else:
+    use_aml = False
+
   # Configuration.
   num_unrolls = FLAGS.num_steps // FLAGS.unroll_length
 
@@ -64,7 +68,7 @@ def main(_):
   problem, net_config, net_assignments = util.get_config(FLAGS.problem)
 
   # Optimizer setup.
-  if flags.aml:
+  if use_aml:
     optimizer = AMLOptimizer(**net_config)
   else:
     optimizer = meta.MetaOptimizer(**net_config)
