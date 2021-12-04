@@ -46,7 +46,8 @@ flags.DEFINE_integer("num_steps", 100,
 flags.DEFINE_integer("unroll_length", 20, "Meta-optimizer unroll length.")
 flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 flags.DEFINE_boolean("second_derivatives", False, "Use second derivatives.")
-flags.DEFINE_boolean("use_aml", False, "Use the AML modified optimizer")
+flags.DEFINE_boolean("aml", False, "Use the AML modified optimizer.")
+print(flags)
 
 
 def main(_):
@@ -63,7 +64,7 @@ def main(_):
   problem, net_config, net_assignments = util.get_config(FLAGS.problem)
 
   # Optimizer setup.
-  if flags.use_aml:
+  if flags.aml:
     optimizer = AMLOptimizer(**net_config)
   else:
     optimizer = meta.MetaOptimizer(**net_config)
