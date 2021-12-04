@@ -1,3 +1,12 @@
+# Automated Machine Learning Project
+## Learning to Learn by Gradient Descent by Gradient Descent
+Much of the code in this repository stems from https://github.com/deepmind/learning-to-learn. The remainder of this README, too, is copied from that repo. While the repository can be run locally, we strongly recommend running the code in Google Colab due to some breaking changes in versions of `tensorflow` and `sonnet` which we have taken care of in our own notebook. The notebook can be found [https://colab.research.google.com/drive/1NdXeetzPzrpyXSlNYpOlBGlbTY8oh4AJ?usp=sharing](here). Since training the L2L optimizer can take some time, we have provided the network weights from our own experiments in the `saved_optimizers` folder.
+
+---
+
+---
+
+
 # [Learning to Learn](https://arxiv.org/abs/1606.04474) in TensorFlow
 
 
