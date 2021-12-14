@@ -86,7 +86,7 @@ def main(_):
       os.mkdir('saved_histories')
     save_path = f"saved_histories{os.sep}{FLAGS.problem}_{FLAGS.optimizer}.csv"
     with open(save_path, 'w') as f:
-      f.write(f"# optimizer: {FLAGS.optimizer}, problem: {FLAGS.problem}")
+      f.write(f"# optimizer: {FLAGS.optimizer}, problem: {FLAGS.problem}\n")
 
     for _ in xrange(FLAGS.num_epochs):
       # Training.
