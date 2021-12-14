@@ -40,7 +40,7 @@ def run_epoch(sess, cost_op, ops, reset, num_unrolls, cost_history_path=None):
 
   if cost_history_path is not None:
     with open(cost_history_path, 'a') as f:
-      f.write(','.join(cost_histories))
+      f.write(','.join(str(cost) for cost in cost_histories))
   return timer() - start, cost
 
 
