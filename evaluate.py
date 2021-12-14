@@ -81,28 +81,25 @@ def main(_):
     total_time = 0
     total_cost = 0
 
+    # Create file to write histories to
+    if not os.path.isdir('saved_histories'):
+      os.mkdir('saved_histories')
     save_path = f"saved_histories{os.sep}{FLAGS.problem}_{FLAGS.optimizer}.csv"
     with open(save_path, 'w') as f:
       f.write(f"# optimizer: {FLAGS.optimizer}, problem: {FLAGS.problem}")
 
-    print(f"Saved time and cost historeis to {save_path}")
     for _ in xrange(FLAGS.num_epochs):
       # Training.
       time, cost = util.run_epoch(sess, cost_op, [update], reset,
-                                  num_unrolls)
+                                  num_unrolls, cost_history_path=save_path)
       total_time += time
       total_cost += cost
-
-
-    # Write histories to file
-    if not os.path.isdir('saved_histories'):
-      os.mkdir('saved_histories')
-
-    
 
     # Results.
     util.print_stats("Epoch {}".format(FLAGS.num_epochs), total_cost,
                      total_time, FLAGS.num_epochs)
+
+    print(f"Saved time and cost historeis to {save_path}")
 
 
 if __name__ == "__main__":
