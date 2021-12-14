@@ -97,8 +97,8 @@ def main(_):
     if not os.path.isdir('saved_histories'):
       os.mkdir('saved_histories')
 
-    save_path = f"{os.path}{os.sep}{FLAGS.problem}_{FLAGS.optimizer}"
-    with open(save_path) as f:
+    save_path = f"saved_histories{os.sep}{FLAGS.problem}_{FLAGS.optimizer}.csv"
+    with open(save_path, 'w') as f:
       writer = csv.writer(f)
       writer.writerows(zip(time_history, cost_history))
     print(f"Saved time and cost historeis to {save_path}")
