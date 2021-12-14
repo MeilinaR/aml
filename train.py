@@ -23,7 +23,8 @@ from sys import argv
 from six.moves import xrange
 import tensorflow as tf
 
-from tensorflow.contrib.learn.python.learn import monitored_session as ms
+from tensorflow.python.compiler.tensorrt import trt_convert as trt
+#from tensorflow.contrib.learn.python.learn import monitored_session as ms
 
 import meta
 from aml_meta import AMLOptimizer
@@ -35,7 +36,7 @@ logging = tf.logging
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("save_path", None, "Path for saved meta-optimizer.")
-flags.DEFINE_integer("num_epochs", 10000, "Number of training epochs.")
+flags.DEFINE_integer("num_epochs", 10, "Number of training epochs.")
 flags.DEFINE_integer("log_period", 100, "Log period.")
 flags.DEFINE_integer("evaluation_period", 1000, "Evaluation period.")
 flags.DEFINE_integer("evaluation_epochs", 20, "Number of evaluation epochs.")
