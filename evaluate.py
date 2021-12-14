@@ -20,6 +20,8 @@ from __future__ import print_function
 
 from six.moves import xrange
 import tensorflow as tf
+import csv
+import os
 
 from tensorflow.contrib.learn.python.learn import monitored_session as ms
 
@@ -78,12 +80,28 @@ def main(_):
 
     total_time = 0
     total_cost = 0
+
+    time_history, cost_history = [], []
+
     for _ in xrange(FLAGS.num_epochs):
       # Training.
       time, cost = util.run_epoch(sess, cost_op, [update], reset,
                                   num_unrolls)
       total_time += time
       total_cost += cost
+
+      time_history.append(time)
+      cost_history.append(cost)
+
+    # Write histories to file
+    if not os.path.isdir('saved_histories'):
+      os.mkdir('saved_histories')
+
+    save_path = f"{os.path}{os.sep}{FLAGS.problem}_{FLAGS.optimizer}"
+    with open(save_path) as f:
+      writer = csv.writer(f)
+      writer.writerows(zip(time_history, cost_history))
+    print(f"Saved time and cost historeis to {save_path}")
 
     # Results.
     util.print_stats("Epoch {}".format(FLAGS.num_epochs), total_cost,
