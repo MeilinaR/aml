@@ -27,12 +27,18 @@ from six.moves import xrange
 import problems
 
 
-def run_epoch(sess, cost_op, ops, reset, num_unrolls):
+def run_epoch(sess, cost_op, ops, reset, num_unrolls, cost_history_path=None):
   """Runs one optimization epoch."""
   start = timer()
   sess.run(reset)
+  cost_histories = []
   for _ in xrange(num_unrolls):
     cost = sess.run([cost_op] + ops)[0]
+    if cost_history_path is not None:
+      cost_histories.append()
+  if cost_history_path is not None:
+    with open(cost_history_path, 'a') as f:
+      f.write(','.join(cost_histories))
   return timer() - start, cost
 
 
