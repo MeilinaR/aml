@@ -10,5 +10,4 @@ class AMLFixedOptimizer(MetaOptimizer):
   def update_parameters(self, x_next, deltas, x, j, idx):
     """Function that returns the update for x_next[j]."""
     LAMBDA = 0.1 #get_lambda()
-    print(f"UPDATING WITH LAMBDA {LAMBDA}")
-    x_next[j] = x_next[j] + deltas[idx] + LAMBDA * x[j]
+    return x_next[j] + deltas[idx] + LAMBDA * x[j]

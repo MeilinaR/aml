@@ -261,7 +261,7 @@ class MetaOptimizer(object):
 
   def update_parameters(self, x_next, deltas, x, j, idx):
     """Function that returns the update for x_next[j]."""
-    x_next[j] = x_next[j] + deltas[idx]
+    return x_next[j] + deltas[idx]
 
   def meta_loss(self,
                 make_loss,
