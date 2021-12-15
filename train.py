@@ -52,14 +52,6 @@ flags.DEFINE_string("which_aml", None, "Custom optimizer to use, 'fixed' or 'lea
 
 
 def main(_):
-  # Check whether to use the AML optimizer:
-  if "--use-aml" in argv[1:]:
-    use_aml = True
-  else:
-    use_aml = False
-
-  print(f"which optim: {FLAGS.which_aml}")
-
   # Configuration.
   num_unrolls = FLAGS.num_steps // FLAGS.unroll_length
 
@@ -73,10 +65,12 @@ def main(_):
   problem, net_config, net_assignments = util.get_config(FLAGS.problem)
 
   # Optimizer setup.
-  if use_aml:
-    optimizer = AMLFixedOptimizer(**net_config)
-  else:
-    optimizer = meta.MetaOptimizer(**net_config)
+  optimizer = {
+    None: meta.MetaOptimizer(**net_config),
+    'fixed': AMLFixedOptimizer(**net_config),
+    'learned': AMLLearnedOptimizer(**net_config),
+  }[FLAGS.which_aml]
+
   minimize = optimizer.meta_minimize(
       problem, FLAGS.unroll_length,
       learning_rate=FLAGS.learning_rate,
