@@ -13,7 +13,7 @@ class AMLFixedOptimizer(MetaOptimizer):
   def update_parameters(self, x_next, deltas, x, j, idx):
     """Function that returns the update for x_next[j]."""
     LAMBDA = get_lambda()
-    return x_next[j] + deltas[idx] + tf.math.multiply(x[j], LAMBDA)
+    return x_next[j] + deltas[idx] + tf.math.scalar_mul(LAMBDA, x[j])
 
   def save(self, sess, path=None):
     """Save meta-optimizer."""
