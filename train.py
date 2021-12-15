@@ -27,7 +27,8 @@ from tensorflow.python.compiler.tensorrt import trt_convert as trt
 #from tensorflow.contrib.learn.python.learn import monitored_session as ms
 
 import meta
-from aml_meta import AMLOptimizer
+from aml_fixed_meta import AMLFixedOptimizer
+from aml_learned_meta import AMLLearnedOptimizer
 import util
 
 flags = tf.flags
@@ -48,6 +49,8 @@ flags.DEFINE_integer("unroll_length", 20, "Meta-optimizer unroll length.")
 flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 flags.DEFINE_boolean("second_derivatives", False, "Use second derivatives.")
 
+flags.DEFINE_string("which_aml", None, "Custom optimizer to use, 'fixed' or 'learned'.")
+
 
 def main(_):
   # Check whether to use the AML optimizer:
@@ -55,6 +58,8 @@ def main(_):
     use_aml = True
   else:
     use_aml = False
+
+  print(f"which optim: {FLAGS.which_aml}")
 
   # Configuration.
   num_unrolls = FLAGS.num_steps // FLAGS.unroll_length
@@ -70,7 +75,7 @@ def main(_):
 
   # Optimizer setup.
   if use_aml:
-    optimizer = AMLOptimizer(**net_config)
+    optimizer = AMLFixedOptimizer(**net_config)
   else:
     optimizer = meta.MetaOptimizer(**net_config)
   minimize = optimizer.meta_minimize(
