@@ -1,4 +1,5 @@
 from meta import MetaOptimizer
+import tensorflow as tf
 from aml_utils import get_lambda
 import os
 import networks
@@ -12,7 +13,7 @@ class AMLFixedOptimizer(MetaOptimizer):
   def update_parameters(self, x_next, deltas, x, j, idx):
     """Function that returns the update for x_next[j]."""
     LAMBDA = get_lambda()
-    return x_next[j] + deltas[idx] + LAMBDA * x[j]
+    return x_next[j] + deltas[idx] + tf.math.multiply(x[j], LAMBDA)
 
   def save(self, sess, path=None):
     """Save meta-optimizer."""
