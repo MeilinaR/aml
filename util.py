@@ -82,7 +82,7 @@ def get_net_path(name, path, file_suffix=None):
     return os.path.join(path, name + ".l2l")
 
 
-def get_default_net_config(name, path):
+def get_default_net_config(name, path, file_suffix=None):
   return {
       "net": "CoordinateWiseDeepLSTM",
       "net_options": {
@@ -91,7 +91,7 @@ def get_default_net_config(name, path):
           "preprocess_options": {"k": 5},
           "scale": 0.01,
       },
-      "net_path": get_net_path(name, path)
+      "net_path": get_net_path(name, path, file_suffix=file_suffix)
   }
 
 
@@ -111,7 +111,7 @@ def get_config(problem_name, path=None, file_suffix=None):
         "cw": {
             "net": "CoordinateWiseDeepLSTM",
             "net_options": {"layers": (), "initializer": "zeros"},
-            "net_path": get_net_path("cw", path)
+            "net_path": get_net_path("cw", path, file_suffix=file_suffix)
         },
         "adam": {
             "net": "Adam",
@@ -124,13 +124,13 @@ def get_config(problem_name, path=None, file_suffix=None):
     net_config = {"cw": {
         "net": "CoordinateWiseDeepLSTM",
         "net_options": {"layers": (20, 20)},
-        "net_path": get_net_path("cw", path)
+        "net_path": get_net_path("cw", path, file_suffix=file_suffix)
     }}
     net_assignments = None
   elif problem_name == "mnist":
     mode = "train" if path is None else "test"
     problem = problems.mnist(layers=(20,), mode=mode)
-    net_config = {"cw": get_default_net_config("cw", path)}
+    net_config = {"cw": get_default_net_config("cw", path, file_suffix=file_suffix)}
     net_assignments = None
   elif problem_name == "cifar":
     mode = "train" if path is None else "test"
@@ -138,7 +138,7 @@ def get_config(problem_name, path=None, file_suffix=None):
                                conv_channels=(16, 16, 16),
                                linear_layers=(32,),
                                mode=mode)
-    net_config = {"cw": get_default_net_config("cw", path)}
+    net_config = {"cw": get_default_net_config("cw", path, file_suffix=file_suffix)}
     net_assignments = None
   elif problem_name == "cifar-multi":
     mode = "train" if path is None else "test"
@@ -147,8 +147,8 @@ def get_config(problem_name, path=None, file_suffix=None):
                                linear_layers=(32,),
                                mode=mode)
     net_config = {
-        "conv": get_default_net_config("conv", path),
-        "fc": get_default_net_config("fc", path)
+        "conv": get_default_net_config("conv", path, file_suffix=file_suffix),
+        "fc": get_default_net_config("fc", path, file_suffix=file_suffix)
     }
     conv_vars = ["conv_net_2d/conv_2d_{}/w".format(i) for i in xrange(3)]
     fc_vars = ["conv_net_2d/conv_2d_{}/b".format(i) for i in xrange(3)]
