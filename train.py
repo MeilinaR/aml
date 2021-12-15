@@ -29,6 +29,7 @@ import meta
 from aml_fixed_meta import AMLFixedOptimizer
 from aml_learned_meta import AMLLearnedOptimizer
 import util
+from aml_utils import set_lambda, get_lambda
 
 flags = tf.flags
 logging = tf.logging
@@ -49,11 +50,15 @@ flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 flags.DEFINE_boolean("second_derivatives", False, "Use second derivatives.")
 
 flags.DEFINE_string("which_aml", None, "Custom optimizer to use, 'fixed' or 'learned'.")
-
+flags.DEFINE_float("fixed_lambda", 0.01, "Value for the 'fixed' lambda optimizer.")
 
 def main(_):
   # Configuration.
   num_unrolls = FLAGS.num_steps // FLAGS.unroll_length
+
+  set_lambda(FLAGS.fixed_lambda)
+  if FLAGS.which_aml == 'fixed':
+    print(f"LAMBDA set to {get_lambda()}")
 
   if FLAGS.save_path is not None:
     if os.path.exists(FLAGS.save_path):
