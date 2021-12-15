@@ -22,6 +22,8 @@ from six.moves import xrange
 import tensorflow as tf
 import csv
 import os
+from aml_fixed_meta import AMLFixedOptimizer
+from aml_learned_meta import AMLLearnedOptimizer
 
 from tensorflow.contrib.learn.python.learn import monitored_session as ms
 
@@ -53,7 +55,8 @@ def main(_):
 
   # Problem.
   problem, net_config, net_assignments = util.get_config(FLAGS.problem,
-                                                         FLAGS.path)
+                                                         FLAGS.path,
+                                                         file_suffix=FLAGS.optimizer)
 
   # Optimizer setup.
   if FLAGS.optimizer == "Adam":
@@ -65,10 +68,14 @@ def main(_):
     optimizer_reset = tf.variables_initializer(optimizer.get_slot_names())
     update = optimizer.minimize(cost_op)
     reset = [problem_reset, optimizer_reset]
-  elif FLAGS.optimizer == "L2L":
+  elif FLAGS.optimizer in ["L2L", "fixed", "learned"]:
     if FLAGS.path is None:
       logging.warning("Evaluating untrained L2L optimizer")
-    optimizer = meta.MetaOptimizer(**net_config)
+    optimizer = {
+      "L2L": meta.MetaOptimizer(**net_config),
+      "fixed": AMLFixedOptimizer(**net_config),
+      "learned": AMLLearnedOptimizer(**net_config),
+    }[FLAGS.optimizer]
     meta_loss = optimizer.meta_loss(problem, 1, net_assignments=net_assignments)
     _, update, reset, cost_op, _ = meta_loss
   else:

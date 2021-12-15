@@ -52,8 +52,10 @@ def print_stats(header, total_error, total_time, n):
   print("Mean epoch time: {:.2f} s".format(total_time / n))
 
 
-def get_net_path(name, path):
-  return None if path is None else os.path.join(path, name + ".l2l")
+def get_net_path(name, path, file_suffix=None):
+  if file_suffix is None:
+    file_suffix = ""
+  return None if path is None else os.path.join(path, name + file_suffix + ".l2l")
 
 
 def get_default_net_config(name, path):
@@ -69,14 +71,14 @@ def get_default_net_config(name, path):
   }
 
 
-def get_config(problem_name, path=None):
+def get_config(problem_name, path=None, file_suffix=None):
   """Returns problem configuration."""
   if problem_name == "simple":
     problem = problems.simple()
     net_config = {"cw": {
         "net": "CoordinateWiseDeepLSTM",
         "net_options": {"layers": (), "initializer": "zeros"},
-        "net_path": get_net_path("cw", path)
+        "net_path": get_net_path("cw", path, file_suffix=file_suffix)
     }}
     net_assignments = None
   elif problem_name == "simple-multi":

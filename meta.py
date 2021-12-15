@@ -217,7 +217,7 @@ class MetaOptimizer(object):
   tasks.
   """
 
-  def __init__(self, **kwargs):
+  def __init__(self, save_file_suffix="", **kwargs):
     """Creates a MetaOptimizer.
 
     Args:
@@ -227,6 +227,7 @@ class MetaOptimizer(object):
           parameters to different optimizers (see net_assignments in the
           meta_loss method).
     """
+    self.save_file_suffix = save_file_suffix
     self._nets = None
 
     if not kwargs:
@@ -252,7 +253,7 @@ class MetaOptimizer(object):
         filename = None
         key = k
       else:
-        filename = os.path.join(path, "{}.l2l".format(k))
+        filename = os.path.join(path, f"{k}{self.save_file_suffix}.l2l")
         key = filename
       net_vars = networks.save(net, sess, filename=filename)
       result[key] = net_vars
