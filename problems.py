@@ -138,6 +138,8 @@ def _xent_loss(output, labels):
                                                         labels=labels)
   return tf.reduce_mean(loss)
 
+
+
 def iris(layers, activation="sigmoid",
           batch_size=128,
           mode="train"):
@@ -177,7 +179,6 @@ def mnist(layers,  # pylint: disable=invalid-name
           batch_size=128,
           mode="train"):
   """Mnist classification with a multi-layer perceptron."""
-
   if activation == "sigmoid":
     activation_op = tf.sigmoid
   elif activation == "relu":
@@ -226,19 +227,19 @@ def _maybe_download_cifar10(path):
     print("Successfully downloaded {} bytes".format(statinfo.st_size))
     tarfile.open(filepath, "r:gz").extractall(path)
 
-
-def cifar10(path,  # pylint: disable=invalid-name
-            conv_channels=None,
-            linear_layers=None,
-            batch_norm=True,
-            batch_size=128,
-            num_threads=4,
-            min_queue_examples=1000,
-            mode="train"):
-  """Cifar10 classification with a convolutional network."""
-
+def cifar10(path, layers,  # pylint: disable=invalid-name
+          activation="sigmoid",
+          batch_size=128,
+          mode="train"):
+  """CIFAR-10 classification with a multi-layer perceptron."""
   # Data.
   _maybe_download_cifar10(path)
+  if activation == "sigmoid":
+    activation_op = tf.sigmoid
+  elif activation == "relu":
+    activation_op = tf.nn.relu
+  else:
+    raise ValueError("{} activation not supported".format(activation))
 
   # Read images and labels from disk.
   if mode == "train":
@@ -268,38 +269,18 @@ def cifar10(path,  # pylint: disable=invalid-name
   image = tf.transpose(image, [1, 2, 0])
   image = tf.div(image, 255)
 
-  queue = tf.RandomShuffleQueue(capacity=min_queue_examples + 3 * batch_size,
-                                min_after_dequeue=min_queue_examples,
+  queue = tf.RandomShuffleQueue(capacity=1000 + 3 * batch_size,
+                                min_after_dequeue=1000,
                                 dtypes=[tf.float32, tf.int32],
                                 shapes=[image.get_shape(), label.get_shape()])
-  enqueue_ops = [queue.enqueue([image, label]) for _ in xrange(num_threads)]
+  enqueue_ops = [queue.enqueue([image, label]) for _ in xrange(4)]
   tf.train.add_queue_runner(tf.train.QueueRunner(queue, enqueue_ops))
 
   # Network.
-  def _conv_activation(x):  # pylint: disable=invalid-name
-    return tf.nn.max_pool(tf.nn.relu(x),
-                          ksize=[1, 2, 2, 1],
-                          strides=[1, 2, 2, 1],
-                          padding="SAME")
-
-  conv = snt.nets.ConvNet2D(output_channels=conv_channels,
-                            kernel_shapes=[5],
-                            strides=[1],
-                            paddings=[snt.SAME],
-                            activation=_conv_activation,
-                            activate_final=True,
-                            initializers=_nn_initializers,
-                            use_batch_norm=batch_norm)
-
-  if batch_norm:
-    linear_activation = lambda x: tf.nn.relu(snt.BatchNorm()(x, is_training=True))
-  else:
-    linear_activation = tf.nn.relu
-
-  mlp = snt.nets.MLP(list(linear_layers) + [10],
-                     activation=linear_activation,
+  mlp = snt.nets.MLP(list(layers) + [10],
+                     activation=activation_op,
                      initializers=_nn_initializers)
-  network = snt.Sequential([conv, snt.BatchFlatten(), mlp])
+  network = snt.Sequential([snt.BatchFlatten(), mlp])
 
   def build():
     image_batch, label_batch = queue.dequeue_many(batch_size)
