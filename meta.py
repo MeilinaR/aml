@@ -259,6 +259,10 @@ class MetaOptimizer(object):
       result[key] = net_vars
     return result
 
+  def update_parameters(self, x_next, deltas, x, j, idx):
+    """Function that returns the update for x_next[j]."""
+    x_next[j] = x_next[j] + deltas[idx]
+
   def meta_loss(self,
                 make_loss,
                 len_unroll,
@@ -336,7 +340,10 @@ class MetaOptimizer(object):
           deltas, s_i_next = update(nets[key], fx, x_i, s_i)
 
           for idx, j in enumerate(subset):
-            x_next[j] += deltas[idx]
+            # Extracted this to a function so that it can be overriden easily in
+            # the other Optimizer classes.
+            x_next[j] = self.update_parameters(x_next, deltas, x, j, idx)
+
           state_next.append(s_i_next)
 
       with tf.name_scope("t_next"):
