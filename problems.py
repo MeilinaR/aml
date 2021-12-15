@@ -28,6 +28,7 @@ import sonnet as snt
 import tensorflow as tf
 
 from tensorflow.contrib.learn.python.learn.datasets import mnist as mnist_dataset
+from tensorflow.contrib.learn.python.learn.datasets import iris as iris
 
 
 _nn_initializers = {
@@ -136,6 +137,39 @@ def _xent_loss(output, labels):
   loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=output,
                                                         labels=labels)
   return tf.reduce_mean(loss)
+
+def iris(layers, activation="sigmoid",
+          batch_size=128,
+          mode="train"):
+    if activation == "sigmoid":
+        activation_op = tf.sigmoid
+    elif activation == "relu":
+        activation_op = tf.nn.relu
+    else:
+        raise ValueError("{} activation not supported".format(activation))
+    """IRIS classification with a multi-layer perceptron."""
+
+    # Data.
+    data = iris.load_iris()
+    data = getattr(data, mode)
+    images = tf.constant(data.images, dtype=tf.float32, name="iris_images")
+    #images = tf.reshape(images, [-1, 28, 28, 1])
+    labels = tf.constant(data.labels, dtype=tf.int64, name="iris_labels")
+
+    # Network.
+    mlp = snt.nets.MLP(list(layers) + [10],
+                       activation=activation_op,
+                       initializers=_nn_initializers)
+    network = snt.Sequential([snt.BatchFlatten(), mlp])
+
+    def build():
+        indices = tf.random_uniform([batch_size], 0, data.num_examples, tf.int64)
+        batch_images = tf.gather(images, indices)
+        batch_labels = tf.gather(labels, indices)
+        output = network(batch_images)
+        return _xent_loss(output, batch_labels)
+
+    return build
 
 
 def mnist(layers,  # pylint: disable=invalid-name
