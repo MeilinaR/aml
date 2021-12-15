@@ -26,7 +26,6 @@ import mock
 import sonnet as snt
 import tensorflow as tf
 
-
 from tensorflow.python.framework import ops
 from tensorflow.python.util import nest
 
@@ -316,7 +315,7 @@ class MetaOptimizer(object):
           gradients = [tf.stop_gradient(g) for g in gradients]
 
       with tf.name_scope("deltas"):
-        deltas, state_next = zip(*[0.01*net(g, s) for g, s in zip(gradients, state)])
+        deltas, state_next = zip(*[net(g, s) for g, s in zip(gradients, state)])
         state_next = list(state_next)
 
       return deltas, state_next
