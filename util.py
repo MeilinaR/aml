@@ -67,9 +67,10 @@ def get_net_path(name, path, file_suffix=None):
     if len(possible_nets) == 1:
       net_path = possible_nets[0]
     else:
-      (print(f"{i}\t{fn}") for i, fn in enumerate(possible_nets))
+      for i, fn in enumerate(possible_nets):
+        print(f"{i}\t{fn}")
       n = input("Enter the number of the file you want to use: ")
-      net_path = possible_nets[n]
+      net_path = possible_nets[int(n)]
 
     LAMBDA = net_path.split("fixed")[-1].split('.l2l')[0]
     print(f"Extracted LAMBDA value {LAMBDA}")
