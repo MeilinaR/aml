@@ -119,8 +119,16 @@ def main(_):
 
         if FLAGS.save_path is not None and eval_cost < best_evaluation:
           print("Removing previously saved meta-optimizer")
+          infix = FLAGS.which_aml
+          if infix is None:
+            infix = ""
+          suffix = ""
+          if FLAGS.which_aml == 'fixed':
+            suffix = str(get_lambda())
+          savefile_name = f"cw{infix}{suffix}.l2l"
           for f in os.listdir(FLAGS.save_path):
-            os.remove(os.path.join(FLAGS.save_path, f))
+            if f == savefile_name:
+              os.remove(os.path.join(FLAGS.save_path, f))
           print("Saving meta-optimizer to {}".format(FLAGS.save_path))
           optimizer.save(sess, FLAGS.save_path)
           best_evaluation = eval_cost
