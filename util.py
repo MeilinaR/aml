@@ -136,6 +136,11 @@ def get_config(problem_name, path=None, file_suffix=None):
     problem = problems.mnist(layers=(20,), mode=mode)
     net_config = {"cw": get_default_net_config("cw", path, file_suffix=file_suffix)}
     net_assignments = None
+  elif problem_name == "fashion_mnist":
+    mode = "train" if path is None else "test"
+    problem = problems.fashion_mnist(layers=(20,), mode=mode)
+    net_config = {"cw": get_default_net_config("cw", path)}
+    net_assignments = None
   elif problem_name == "cifar":
     mode = "train" if path is None else "test"
     problem = problems.cifar10("cifar10",
