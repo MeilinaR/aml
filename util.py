@@ -61,6 +61,9 @@ def get_net_path(name, path, file_suffix=None):
     file_suffix = ""
   elif file_suffix == 'fixed':
     possible_nets = os.listdir(os.path.join(path))
+    possible_nets = [net for net in possible_nets if 'fixed' in net]
+    if len(possible_nets) == 0:
+      raise ValueError(f"No 'fixed' configurations in directory {path}")
     if len(possible_nets) == 1:
       net_path = possible_nets[0]
     else:
