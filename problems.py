@@ -28,6 +28,7 @@ import sonnet as snt
 import tensorflow as tf
 
 from tensorflow.contrib.learn.python.learn.datasets import mnist as mnist_dataset
+from tensorflow.keras.datasets import fashion_mnist as fashion_mnist_dataset
 
 
 _nn_initializers = {
@@ -173,6 +174,45 @@ def mnist(layers,  # pylint: disable=invalid-name
 
   return build
 
+def fashion_mnist(layers, activation="sigmoid",
+          batch_size=128,
+          mode="train"):
+    if activation == "sigmoid":
+        activation_op = tf.sigmoid
+    elif activation == "relu":
+        activation_op = tf.nn.relu
+    else:
+        raise ValueError("{} activation not supported".format(activation))
+    """fashion_mnist classification with a multi-layer perceptron."""
+
+    # Data.
+    data = fashion_mnist_dataset.load_data()
+    (x_train, y_train), (x_test, y_test) = data
+    if mode == "train":
+      images = tf.constant(x_train, dtype=tf.float32, name="iris_images")
+      #images = tf.reshape(images, [-1, 28, 28, 1])
+      labels = tf.constant(y_train, dtype=tf.int64, name="iris_labels")
+      num_examples = 60000
+    elif mode == "test":
+      images = tf.constant(x_test, dtype=tf.float32, name="iris_images")
+      #images = tf.reshape(images, [-1, 28, 28, 1])
+      labels = tf.constant(y_test, dtype=tf.int64, name="iris_labels")
+      num_examples = 10000
+
+    # Network.
+    mlp = snt.nets.MLP(list(layers) + [10],
+                       activation=activation_op,
+                       initializers=_nn_initializers)
+    network = snt.Sequential([snt.BatchFlatten(), mlp])
+
+    def build():
+        indices = tf.random_uniform([batch_size], 0, num_examples, tf.int64)
+        batch_images = tf.gather(images, indices)
+        batch_labels = tf.gather(labels, indices)
+        output = network(batch_images)
+        return _xent_loss(output, batch_labels)
+
+    return build
 
 CIFAR10_URL = "http://www.cs.toronto.edu/~kriz"
 CIFAR10_FILE = "cifar-10-binary.tar.gz"
