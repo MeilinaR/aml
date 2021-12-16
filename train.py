@@ -62,7 +62,7 @@ def main(_):
 
   if FLAGS.save_path is not None:
     if os.path.exists(FLAGS.save_path):
-      raise ValueError("Folder {} already exists".format(FLAGS.save_path))
+      print("Folder {} already exists".format(FLAGS.save_path))
     else:
       os.mkdir(FLAGS.save_path)
 

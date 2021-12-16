@@ -24,6 +24,7 @@ import csv
 import os
 from aml_fixed_meta import AMLFixedOptimizer
 from aml_learned_meta import AMLLearnedOptimizer
+from aml_utils import get_lambda
 
 from tensorflow.contrib.learn.python.learn import monitored_session as ms
 
@@ -91,7 +92,10 @@ def main(_):
     # Create file to write histories to
     if not os.path.isdir('saved_histories'):
       os.mkdir('saved_histories')
-    save_path = f"saved_histories{os.sep}{FLAGS.problem}_{FLAGS.optimizer}.csv"
+    suffix = ""
+    if FLAGS.optimizer == 'fixed':
+      suffix = "_" + str(get_lambda())
+    save_path = f"saved_histories{os.sep}{FLAGS.problem}_{FLAGS.optimizer}{suffix}.csv"
     with open(save_path, 'w') as f:
       f.write(f"# optimizer: {FLAGS.optimizer}, problem: {FLAGS.problem}\n")
 
