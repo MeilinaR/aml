@@ -24,6 +24,7 @@ from timeit import default_timer as timer
 import numpy as np
 from six.moves import xrange
 
+from aml_utils import set_lambda
 import problems
 
 
@@ -53,12 +54,39 @@ def print_stats(header, total_error, total_time, n):
 
 
 def get_net_path(name, path, file_suffix=None):
+  if path is None:
+    return None
+
   if file_suffix is None:
     file_suffix = ""
-  return None if path is None else os.path.join(path, name + file_suffix + ".l2l")
+  elif file_suffix == 'fixed':
+    possible_nets = os.listdir(os.path.join(path))
+    possible_nets = [net for net in possible_nets if 'fixed' in net]
+    if len(possible_nets) == 0:
+      raise ValueError(f"No 'fixed' configurations in directory {path}")
+    if len(possible_nets) == 1:
+      net_path = possible_nets[0]
+    else:
+      for i, fn in enumerate(possible_nets):
+        print(f"{i}\t{fn}")
+      n = input("Enter the number of the file you want to use: ")
+      net_path = possible_nets[int(n)]
+
+    LAMBDA = net_path.split("fixed")[-1].split('.l2l')[0]
+    print(f"Extracted LAMBDA value {LAMBDA}")
+    set_lambda(LAMBDA)
+    return os.path.join(path, net_path)
+  elif file_suffix == 'learned':
+    net_path = os.listdir(os.path.join(path))[0]
+    print(f"Using the configuration stored in {net_path}")
+    # TODO: read correct parameter settings once implemented
+    return os.path.join(path, net_path)
+
+  else: # Original L2L optimizer
+    return os.path.join(path, name + ".l2l")
 
 
-def get_default_net_config(name, path):
+def get_default_net_config(name, path, file_suffix=None):
   return {
       "net": "CoordinateWiseDeepLSTM",
       "net_options": {
@@ -67,7 +95,7 @@ def get_default_net_config(name, path):
           "preprocess_options": {"k": 5},
           "scale": 0.01,
       },
-      "net_path": get_net_path(name, path)
+      "net_path": get_net_path(name, path, file_suffix=file_suffix)
   }
 
 
@@ -87,7 +115,7 @@ def get_config(problem_name, path=None, file_suffix=None):
         "cw": {
             "net": "CoordinateWiseDeepLSTM",
             "net_options": {"layers": (), "initializer": "zeros"},
-            "net_path": get_net_path("cw", path)
+            "net_path": get_net_path("cw", path, file_suffix=file_suffix)
         },
         "adam": {
             "net": "Adam",
@@ -100,12 +128,17 @@ def get_config(problem_name, path=None, file_suffix=None):
     net_config = {"cw": {
         "net": "CoordinateWiseDeepLSTM",
         "net_options": {"layers": (20, 20)},
-        "net_path": get_net_path("cw", path)
+        "net_path": get_net_path("cw", path, file_suffix=file_suffix)
     }}
     net_assignments = None
   elif problem_name == "mnist":
     mode = "train" if path is None else "test"
     problem = problems.mnist(layers=(20,), mode=mode)
+    net_config = {"cw": get_default_net_config("cw", path, file_suffix=file_suffix)}
+    net_assignments = None
+  elif problem_name == "fashion_mnist":
+    mode = "train" if path is None else "test"
+    problem = problems.fashion_mnist(layers=(20,), mode=mode)
     net_config = {"cw": get_default_net_config("cw", path)}
     net_assignments = None
   elif problem_name == "cifar":
@@ -114,7 +147,7 @@ def get_config(problem_name, path=None, file_suffix=None):
                                conv_channels=(16, 16, 16),
                                linear_layers=(32,),
                                mode=mode)
-    net_config = {"cw": get_default_net_config("cw", path)}
+    net_config = {"cw": get_default_net_config("cw", path, file_suffix=file_suffix)}
     net_assignments = None
   elif problem_name == "cifar-multi":
     mode = "train" if path is None else "test"
@@ -123,8 +156,8 @@ def get_config(problem_name, path=None, file_suffix=None):
                                linear_layers=(32,),
                                mode=mode)
     net_config = {
-        "conv": get_default_net_config("conv", path),
-        "fc": get_default_net_config("fc", path)
+        "conv": get_default_net_config("conv", path, file_suffix=file_suffix),
+        "fc": get_default_net_config("fc", path, file_suffix=file_suffix)
     }
     conv_vars = ["conv_net_2d/conv_2d_{}/w".format(i) for i in xrange(3)]
     fc_vars = ["conv_net_2d/conv_2d_{}/b".format(i) for i in xrange(3)]

@@ -28,7 +28,9 @@ import sonnet as snt
 import tensorflow as tf
 
 from tensorflow.contrib.learn.python.learn.datasets import mnist as mnist_dataset
-from tensorflow.contrib.learn.python.learn.datasets import iris as iris
+from tensorflow.contrib.learn.python.learn.datasets import iris as iris_dataset
+from tensorflow.keras.datasets import fashion_mnist as fashion_mnist_dataset
+from tensorflow.keras.datasets import cifar100 as cifar100_dataset
 
 
 _nn_initializers = {
@@ -152,7 +154,7 @@ def iris(layers, activation="sigmoid",
     """IRIS classification with a multi-layer perceptron."""
 
     # Data.
-    data = iris.load_iris()
+    data = iris_dataset.load_iris()
     data = getattr(data, mode)
     images = tf.constant(data.images, dtype=tf.float32, name="iris_images")
     #images = tf.reshape(images, [-1, 28, 28, 1])
@@ -208,6 +210,45 @@ def mnist(layers,  # pylint: disable=invalid-name
 
   return build
 
+def fashion_mnist(layers, activation="sigmoid",
+          batch_size=128,
+          mode="train"):
+    if activation == "sigmoid":
+        activation_op = tf.sigmoid
+    elif activation == "relu":
+        activation_op = tf.nn.relu
+    else:
+        raise ValueError("{} activation not supported".format(activation))
+    """fashion_mnist classification with a multi-layer perceptron."""
+
+    # Data.
+    data = fashion_mnist_dataset.load_data()
+    (x_train, y_train), (x_test, y_test) = data
+    if mode == "train":
+      images = tf.constant(x_train, dtype=tf.float32, name="fmnist_images")
+      #images = tf.reshape(images, [-1, 28, 28, 1])
+      labels = tf.constant(y_train, dtype=tf.int64, name="fmnist_labels")
+      num_examples = 60000
+    elif mode == "test":
+      images = tf.constant(x_test, dtype=tf.float32, name="fmnist_images")
+      #images = tf.reshape(images, [-1, 28, 28, 1])
+      labels = tf.constant(y_test, dtype=tf.int64, name="fmnist_labels")
+      num_examples = 10000
+
+    # Network.
+    mlp = snt.nets.MLP(list(layers) + [10],
+                       activation=activation_op,
+                       initializers=_nn_initializers)
+    network = snt.Sequential([snt.BatchFlatten(), mlp])
+
+    def build():
+        indices = tf.random_uniform([batch_size], 0, num_examples, tf.int64)
+        batch_images = tf.gather(images, indices)
+        batch_labels = tf.gather(labels, indices)
+        output = network(batch_images)
+        return _xent_loss(output, batch_labels)
+
+    return build
 
 CIFAR10_URL = "http://www.cs.toronto.edu/~kriz"
 CIFAR10_FILE = "cifar-10-binary.tar.gz"
@@ -290,3 +331,85 @@ def cifar10(path, layers,  # pylint: disable=invalid-name
     return _xent_loss(output, label_batch)
 
   return build
+
+CIFAR100_URL = "http://www.cs.toronto.edu/~kriz/"
+CIFAR100_FILE = "cifar-100-python.tar.gz"
+CIFAR10_FOLDER = "cifar-100-batches-bin"
+
+def _maybe_download_cifar10(path):
+  """Download and extract the tarball from Alex's website."""
+  if not os.path.exists(path):
+    os.makedirs(path)
+  filepath = os.path.join(path, CIFAR10_FILE)
+  if not os.path.exists(filepath):
+    print("Downloading CIFAR10 dataset to {}".format(filepath))
+    url = os.path.join(CIFAR10_URL, CIFAR10_FILE)
+    filepath, _ = urllib.request.urlretrieve(url, filepath)
+    statinfo = os.stat(filepath)
+    print("Successfully downloaded {} bytes".format(statinfo.st_size))
+    tarfile.open(filepath, "r:gz").extractall(path)
+
+def cifar100-mlp(path, layers,  # pylint: disable=invalid-name
+          activation="sigmoid",
+          batch_size=128,
+          mode="train"):
+  """CIFAR-10 classification with a multi-layer perceptron."""
+  # Data.
+  _maybe_download_cifar10(path)
+  if activation == "sigmoid":
+    activation_op = tf.sigmoid
+  elif activation == "relu":
+    activation_op = tf.nn.relu
+  else:
+    raise ValueError("{} activation not supported".format(activation))
+
+  # Read images and labels from disk.
+  if mode == "train":
+    filenames = [os.path.join(path,
+                              CIFAR10_FOLDER,
+                              "data_batch_{}.bin".format(i))
+                 for i in xrange(1, 6)]
+  elif mode == "test":
+    filenames = [os.path.join(path, "test_batch.bin")]
+  else:
+    raise ValueError("Mode {} not recognised".format(mode))
+
+  depth = 3
+  height = 32
+  width = 32
+  label_bytes = 1
+  image_bytes = depth * height * width
+  record_bytes = label_bytes + image_bytes
+  reader = tf.FixedLengthRecordReader(record_bytes=record_bytes)
+  _, record = reader.read(tf.train.string_input_producer(filenames))
+  record_bytes = tf.decode_raw(record, tf.uint8)
+
+  label = tf.cast(tf.slice(record_bytes, [0], [label_bytes]), tf.int32)
+  raw_image = tf.slice(record_bytes, [label_bytes], [image_bytes])
+  image = tf.cast(tf.reshape(raw_image, [depth, height, width]), tf.float32)
+  # height x width x depth.
+  image = tf.transpose(image, [1, 2, 0])
+  image = tf.div(image, 255)
+
+  queue = tf.RandomShuffleQueue(capacity=1000 + 3 * batch_size,
+                                min_after_dequeue=1000,
+                                dtypes=[tf.float32, tf.int32],
+                                shapes=[image.get_shape(), label.get_shape()])
+  enqueue_ops = [queue.enqueue([image, label]) for _ in xrange(4)]
+  tf.train.add_queue_runner(tf.train.QueueRunner(queue, enqueue_ops))
+
+  # Network.
+  mlp = snt.nets.MLP(list(layers) + [10],
+                     activation=activation_op,
+                     initializers=_nn_initializers)
+  network = snt.Sequential([snt.BatchFlatten(), mlp])
+
+  def build():
+    image_batch, label_batch = queue.dequeue_many(batch_size)
+    label_batch = tf.reshape(label_batch, [batch_size])
+
+    output = network(image_batch)
+    return _xent_loss(output, label_batch)
+
+  return build
+  

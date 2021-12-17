@@ -29,6 +29,7 @@ import meta
 from aml_fixed_meta import AMLFixedOptimizer
 from aml_learned_meta import AMLLearnedOptimizer
 import util
+from aml_utils import set_lambda, get_lambda
 
 flags = tf.flags
 logging = tf.logging
@@ -49,15 +50,19 @@ flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 flags.DEFINE_boolean("second_derivatives", False, "Use second derivatives.")
 
 flags.DEFINE_string("which_aml", None, "Custom optimizer to use, 'fixed' or 'learned'.")
-
+flags.DEFINE_float("fixed_lambda", 0.01, "Value for the 'fixed' lambda optimizer.")
 
 def main(_):
   # Configuration.
   num_unrolls = FLAGS.num_steps // FLAGS.unroll_length
 
+  set_lambda(FLAGS.fixed_lambda)
+  if FLAGS.which_aml == 'fixed':
+    print(f"LAMBDA set to {get_lambda()}")
+
   if FLAGS.save_path is not None:
     if os.path.exists(FLAGS.save_path):
-      raise ValueError("Folder {} already exists".format(FLAGS.save_path))
+      print("Folder {} already exists".format(FLAGS.save_path))
     else:
       os.mkdir(FLAGS.save_path)
 
@@ -114,8 +119,16 @@ def main(_):
 
         if FLAGS.save_path is not None and eval_cost < best_evaluation:
           print("Removing previously saved meta-optimizer")
+          infix = FLAGS.which_aml
+          if infix is None:
+            infix = ""
+          suffix = ""
+          if FLAGS.which_aml == 'fixed':
+            suffix = str(get_lambda())
+          savefile_name = f"cw{infix}{suffix}.l2l"
           for f in os.listdir(FLAGS.save_path):
-            os.remove(os.path.join(FLAGS.save_path, f))
+            if f == savefile_name:
+              os.remove(os.path.join(FLAGS.save_path, f))
           print("Saving meta-optimizer to {}".format(FLAGS.save_path))
           optimizer.save(sess, FLAGS.save_path)
           best_evaluation = eval_cost
