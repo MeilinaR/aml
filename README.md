@@ -73,6 +73,7 @@ The training and evaluation scripts support the following problems (see
 * `fashion_mnist`: Fashion Mnist classification using a two-layer fully connected network.
 * `iris`: IRIS classification using a two-layer fully connected network.
 * `cifar-mlp`: Cifar10 classification using a two-layer fully connected network.
+*  `cifar100-mlp`: Cifar100 classification using a two-layer fully connected network.
 * `cifar`: Cifar10 classification using a convolutional neural network.
 * `cifar-multi`: Cifar10 classification using a convolutional neural network,
     where two independent learned optimizers are used. One to optimize
